@@ -13,7 +13,10 @@ var board,
     "r1bqkb1r/ppp1pppp/2n2n2/3p4/3PP3/2N5/PPP2PPP/R1BQKBNR w KQkq - 1 4"
   ],
   fenEl = $('#fen'),
-  pgnEl = $('#pgn');
+  pgnEl = $('#pgn'),
+  $slider = $('#slider');
+
+  $slider.attr('max', fenArray.length);
 
 // do not pick up pieces if the game is over
 // only pick up pieces for the side to move
@@ -44,6 +47,7 @@ var onDrop = function(source, target) {
 var onSnapEnd = function() {
   board.position(game.fen());
   fenArray.push(game.fen());
+  $slider.attr('max', fenArray.length);
 };
 
 var updateStatus = function() {
@@ -100,10 +104,15 @@ $('#replay').on('click', function(){
     if (thisTime - lastTime > 1000) {
       lastTime = thisTime;
       board.position(fenArray[i++]);
+      $slider.val(i);
     }
     if (i < fenArray.length) {
       requestAnimationFrame(tick);
     }
   };
   tick();
+});
+
+$slider.on('change', function() {
+  board.position(fenArray[$(this).val()]);
 });
