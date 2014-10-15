@@ -85,8 +85,10 @@ var updateStatus = function() {
   statusEl.html(status);
   fenEl.html(game.fen());
   pgnEl.html(game.pgn());
-  // pgnArray.push(game.pgn());
-  // fenArray.push(game.fen());
+  if ($('#record').is(':checked')) {
+    pgnArray.push(game.pgn());
+    fenArray.push(game.fen());
+  }
   $slider.attr('max', fenArray.length-1);
 };
 
@@ -130,4 +132,11 @@ $slider.on('change', function() {
   board.position(fenArray[$(this).val()]);
   updateStatus();
   updateDisplay();
+});
+
+$('#record').on('change', function() {
+  console.log('record changed');
+  fenArray = ["rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"];
+  pgnArray = [];
+  movesArray = [];
 });
