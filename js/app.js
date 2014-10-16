@@ -7,7 +7,7 @@ var statusEl = $('#status');
 var fenEl = $('#fen');
 var pgnEl = $('#pgn');
 var $slider = $('#slider');
-
+var replaying;
 
 
 var depth = function(tree) {
@@ -73,6 +73,8 @@ var onDrop = function(source, target) {
     });
   }
 
+  console.log(depth(fenTree));
+  updateDisplay();
 };
 
 // update the board position after the piece snap
@@ -128,6 +130,9 @@ var updateDisplay = function(i) {
   if(typeof i === 'number') {
     $slider.val(i);
   }
+  $('#depth').html(depth(fenTree));
+  render(fenTree, true);
+
 };
 
 
@@ -135,6 +140,7 @@ var updateDisplay = function(i) {
 $('#replay').on('click', function() {
   var lastTime = new Date().getTime();
   var i = 0;
+  replaying = true;
   var tick = function() {
     var thisTime = new Date().getTime();
     if (thisTime - lastTime > 1000) {
@@ -144,12 +150,14 @@ $('#replay').on('click', function() {
       var node = t.find(fenTree, function (node) {
         return node.id === i;
       });
-      console.log(i, node.id);
+
       board.position(node.pos);
       i += 1;
     }
     if (i < nextNodeId) {
       requestAnimationFrame(tick);
+    } else {
+      replaying = false;
     }
   };
   tick();
@@ -157,14 +165,25 @@ $('#replay').on('click', function() {
 
 
 $('#record').on('change', function() {
-  var fenTree = {
-    id: 0,
-    pos: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-  };
+  if($(this).is(':checked')) {
+    fenTree = {
+      id: 0,
+      pos: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      children: []
+    };
+    updateDisplay();
+  }
 });
 
+$slider.on('input', function(){
+  var self = this;
+  var node = t.find(fenTree, function (node) {
+    return node.id === parseInt(self.value, 10);
+  });
+  board.position(node.pos);
+});
 
 board = new ChessBoard('board', cfg);
 updateStatus();
 updateDisplay();
-$slider.prop('disabled', true);
+//$slider.prop('disabled', true);
