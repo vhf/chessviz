@@ -73,7 +73,6 @@ var onDrop = function(source, target) {
     });
   }
 
-  console.log(depth(fenTree));
   updateDisplay();
 };
 
@@ -152,6 +151,7 @@ $('#replay').on('click', function() {
       });
 
       board.position(node.pos);
+      game = new Chess(node.pos);
       i += 1;
     }
     if (i < nextNodeId) {
@@ -180,6 +180,7 @@ $slider.on('input', function(){
   var node = t.find(fenTree, function (node) {
     return node.id === parseInt(self.value, 10);
   });
+  game = new Chess(node.pos);
   board.position(node.pos);
 });
 
