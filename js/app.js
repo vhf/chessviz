@@ -1,26 +1,40 @@
 "use strict";
 
+var $ = $, t = t;
 var board;
 var game = new Chess();
 var statusEl = $('#status');
-var fenArray = ["rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-                "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1",
-                "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq d6 0 2",
-                "rnbqkbnr/ppp1pppp/8/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq - 1 2",
-                "rnbqkbnr/ppp2ppp/8/3pp3/3P4/5N2/PPP1PPPP/RNBQKB1R w KQkq e6 0 3",
-                "rnbqkbnr/ppp2ppp/8/3pN3/3P4/8/PPP1PPPP/RNBQKB1R b KQkq - 0 3",
-                "rnbqkbnr/ppp3pp/5p2/3pN3/3P4/8/PPP1PPPP/RNBQKB1R w KQkq - 0 4",
-                "rnbqkbnr/ppp3pp/5p2/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq - 1 4",
-                "rn1qkbnr/ppp3pp/5p2/3p4/3P2b1/5N2/PPP1PPPP/RNBQKB1R w KQkq - 2 5",
-                "rn1qkbnr/ppp3pp/5p2/3p4/3P2b1/2N2N2/PPP1PPPP/R1BQKB1R b KQkq - 3 5"
-               ];
-var pgnArray = ["", "1. d4", "1. d4 d5", "1. d4 d5 2. Nf3", "1. d4 d5 2. Nf3 e5", "1. d4 d5 2. Nf3 e5 3. Nxe5", "1. d4 d5 2. Nf3 e5 3. Nxe5 f6", "1. d4 d5 2. Nf3 e5 3. Nxe5 f6 4. Nf3", "1. d4 d5 2. Nf3 e5 3. Nxe5 f6 4. Nf3 Bg4", "1. d4 d5 2. Nf3 e5 3. Nxe5 f6 4. Nf3 Bg4 5. Nc3"];
-var movesArray = [{source: "d2", target: "d4"}, {source: "d7", target: "d5"}, {source: "g1", target: "f3"}, {source: "e7", target: "e5"}, {source: "f3", target: "e5"}, {source: "f7", target: "f6"}, {source: "e5", target: "f3"}, {source: "c8", target: "g4"}, {source: "b1", target: "c3"}];
 var fenEl = $('#fen');
 var pgnEl = $('#pgn');
 var $slider = $('#slider');
 
-$slider.attr('max', fenArray.length-1);
+
+
+var depth = function(tree) {
+  var i = 0;
+  t.dfs(tree, function(node, par, ctrl) {
+    i++;
+  });
+  return i;
+};
+
+
+
+var fenTree = {
+  id: 0,
+  pos: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  children: [{
+    id: 1,
+    pos: "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1",
+    children: [{
+      id: 2,
+      pos: "rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 2"
+    }]
+  }]
+};
+
+var nextNodeId = depth(fenTree);
+$slider.attr('max', nextNodeId-1);
 
 // do not pick up pieces if the game is over
 // only pick up pieces for the side to move
@@ -42,10 +56,23 @@ var onDrop = function(source, target) {
 
   // illegal move
   if (move === null) return 'snapback';
-
-  movesArray.push({source: source, target: target});
-
   updateStatus();
+
+
+  if ($('#record').is(':checked')) {
+    nextNodeId = depth(fenTree);
+
+    var deepestNode = t.find(fenTree, function (node) {
+      return node.id === nextNodeId-1;
+    });
+
+    deepestNode.children = [];
+    deepestNode.children.push({
+      id: nextNodeId++,
+      pos: game.fen()
+    });
+  }
+
 };
 
 // update the board position after the piece snap
@@ -85,11 +112,8 @@ var updateStatus = function() {
   statusEl.html(status);
   fenEl.html(game.fen());
   pgnEl.html(game.pgn());
-  if ($('#record').is(':checked')) {
-    pgnArray.push(game.pgn());
-    fenArray.push(game.fen());
-  }
-  $slider.attr('max', fenArray.length-1);
+
+  $slider.attr('max', nextNodeId-1);
 };
 
 var cfg = {
@@ -99,7 +123,6 @@ var cfg = {
   onDrop: onDrop,
   onSnapEnd: onSnapEnd
 };
-board = new ChessBoard('board', cfg);
 
 var updateDisplay = function(i) {
   if(typeof i === 'number') {
@@ -107,8 +130,7 @@ var updateDisplay = function(i) {
   }
 };
 
-updateStatus();
-updateDisplay();
+
 
 $('#replay').on('click', function() {
   var lastTime = new Date().getTime();
@@ -118,25 +140,31 @@ $('#replay').on('click', function() {
     if (thisTime - lastTime > 1000) {
       updateDisplay(i);
       lastTime = thisTime;
-      board.position(fenArray[i]);
+
+      var node = t.find(fenTree, function (node) {
+        return node.id === i;
+      });
+      console.log(i, node.id);
+      board.position(node.pos);
       i += 1;
     }
-    if (i < fenArray.length) {
+    if (i < nextNodeId) {
       requestAnimationFrame(tick);
     }
   };
   tick();
 });
 
-$slider.on('change', function() {
-  board.position(fenArray[$(this).val()]);
-  updateStatus();
-  updateDisplay();
-});
 
 $('#record').on('change', function() {
-  console.log('record changed');
-  fenArray = ["rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"];
-  pgnArray = [];
-  movesArray = [];
+  var fenTree = {
+    id: 0,
+    pos: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+  };
 });
+
+
+board = new ChessBoard('board', cfg);
+updateStatus();
+updateDisplay();
+$slider.prop('disabled', true);
