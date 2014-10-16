@@ -8,6 +8,7 @@ var fenEl = $('#fen');
 var pgnEl = $('#pgn');
 var $slider = $('#slider');
 var replaying;
+var currentNode;
 
 
 var depth = function(tree) {
@@ -59,17 +60,31 @@ var onDrop = function(source, target) {
   updateStatus();
 
 
+  var deepestNode = t.find(fenTree, function (node) {
+    return node.id === nextNodeId-1;
+  });
+
+  if (currentNode !== deepestNode) {
+    if (!currentNode.hasOwnProperty('children')) {
+      currentNode.children = [];
+    }
+    var newNode = {
+      id: nextNodeId++,
+      pos: game.fen(),
+      children: []
+    };
+    currentNode.children.push(newNode);
+    currentNode = newNode;
+  }
+
   if ($('#record').is(':checked')) {
     nextNodeId = depth(fenTree);
-
-    var deepestNode = t.find(fenTree, function (node) {
-      return node.id === nextNodeId-1;
-    });
 
     deepestNode.children = [];
     deepestNode.children.push({
       id: nextNodeId++,
-      pos: game.fen()
+      pos: game.fen(),
+      children: []
     });
   }
 
@@ -177,11 +192,11 @@ $('#record').on('change', function() {
 
 $slider.on('input', function(){
   var self = this;
-  var node = t.find(fenTree, function (node) {
+  currentNode = t.find(fenTree, function (node) {
     return node.id === parseInt(self.value, 10);
   });
-  game = new Chess(node.pos);
-  board.position(node.pos);
+  game = new Chess(currentNode.pos);
+  board.position(currentNode.pos);
 });
 
 board = new ChessBoard('board', cfg);
