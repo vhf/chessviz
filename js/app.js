@@ -53,7 +53,7 @@ var fenTree = {
 };
 
 var nextNodeId = depth(fenTree);
-$slider.attr('max', nextNodeId-1);
+$slider.attr('max', nextNodeId);
 
 // do not pick up pieces if the game is over
 // only pick up pieces for the side to move
@@ -143,7 +143,7 @@ var updateStatus = function() {
   fenEl.html(game.fen());
   pgnEl.html(game.pgn());
 
-  $slider.attr('max', nextNodeId-1);
+  $slider.attr('max', nextNodeId);
 };
 
 var cfg = {
@@ -202,6 +202,7 @@ $('#record').on('change', function() {
     currentNode = fenTree;
     updateDisplay();
   }
+  nextNodeId = 1;
 });
 
 $slider.on('input', function(){
