@@ -19,6 +19,24 @@ var depth = function(tree) {
   return i;
 };
 
+var getDeepestNode = function(tree) {
+  return t.find(fenTree, function (node) {
+    return node.id === nextNodeId-1;
+  });
+};
+
+var getRootNode = function(tree) {
+  return t.find(fenTree, function (node) {
+    return node.id === 0;
+  });
+};
+
+var insertBelow = function(parent, child) {
+  if (!parent.hasOwnProperty('children')) {
+    parent.children = [];
+  }
+  parent.children.push(child);
+};
 
 
 var fenTree = {
@@ -60,32 +78,28 @@ var onDrop = function(source, target) {
   updateStatus();
 
 
-  var deepestNode = t.find(fenTree, function (node) {
-    return node.id === nextNodeId-1;
-  });
-
-  if (currentNode !== deepestNode) {
-    if (!currentNode.hasOwnProperty('children')) {
-      currentNode.children = [];
-    }
-    var newNode = {
-      id: nextNodeId++,
-      pos: game.fen(),
-      children: []
-    };
-    currentNode.children.push(newNode);
-    currentNode = newNode;
-  }
-
   if ($('#record').is(':checked')) {
-    nextNodeId = depth(fenTree);
+    var deepestNode = getDeepestNode(fenTree);
+    var newNode;
+    if (currentNode !== deepestNode) {
+      newNode = {
+        id: nextNodeId++,
+        pos: game.fen(),
+        children: []
+      };
+      insertBelow(currentNode, newNode);
+      currentNode = newNode;
+    } else {
 
-    deepestNode.children = [];
-    deepestNode.children.push({
-      id: nextNodeId++,
-      pos: game.fen(),
-      children: []
-    });
+      nextNodeId = depth(fenTree);
+      newNode = {
+        id: nextNodeId++,
+        pos: game.fen(),
+        children: []
+      };
+      insertBelow(deepestNode, newNode);
+      currentNode = newNode;
+    }
   }
 
   updateDisplay();
@@ -145,8 +159,7 @@ var updateDisplay = function(i) {
     $slider.val(i);
   }
   $('#depth').html(depth(fenTree));
-  render(fenTree, true);
-
+  render(getRootNode(), true);
 };
 
 
@@ -186,6 +199,7 @@ $('#record').on('change', function() {
       pos: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
       children: []
     };
+    currentNode = fenTree;
     updateDisplay();
   }
 });
