@@ -34,6 +34,7 @@
       .enter().append("g")
         .attr("class", "node")
         .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+        .on("click", click);
 
     node.append("circle")
         .attr("r", 4.5);

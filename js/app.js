@@ -11,12 +11,18 @@ var replaying;
 var currentNode;
 
 
+//returns the maximum depth of the graph
+//FIXME
 var depth = function(tree) {
   var i = 0;
+  var largest = 0;
   t.dfs(tree, function(node, par, ctrl) {
     i++;
+    if(!node.hasOwnProperty('children') || node.children.length === 0) {
+      i = 0;
+    }
   });
-  return i;
+  return largest;
 };
 
 var getDeepestNode = function(tree) {
@@ -47,7 +53,8 @@ var fenTree = {
     pos: "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1",
     children: [{
       id: 2,
-      pos: "rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 2"
+      pos: "rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 2",
+      children: []
     }]
   }]
 };
@@ -82,6 +89,7 @@ var onDrop = function(source, target) {
     var deepestNode = getDeepestNode(fenTree);
     var newNode;
     if (currentNode !== deepestNode) {
+      console.log('forking a game');
       newNode = {
         id: nextNodeId++,
         pos: game.fen(),
@@ -90,7 +98,7 @@ var onDrop = function(source, target) {
       insertBelow(currentNode, newNode);
       currentNode = newNode;
     } else {
-
+      console.log('continuing a game');
       nextNodeId = depth(fenTree);
       newNode = {
         id: nextNodeId++,
@@ -199,6 +207,8 @@ $('#record').on('change', function() {
       pos: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
       children: []
     };
+    game = new Chess();
+    board.position(fenTree.pos);
     currentNode = fenTree;
     updateDisplay();
   }
@@ -218,3 +228,11 @@ board = new ChessBoard('board', cfg);
 updateStatus();
 updateDisplay();
 //$slider.prop('disabled', true);
+
+
+
+function click(d) {
+  console.log('clicked on ', d);
+  $('#slider').val(d.id);
+  board.position(d.pos);
+};
