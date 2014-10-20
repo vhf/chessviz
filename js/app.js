@@ -61,9 +61,6 @@ var fenTree = {
   }]
 };
 
-var nextNodeId = depth(fenTree);
-$slider.attr('max', depth(fenTree));
-
 // do not pick up pieces if the game is over
 // only pick up pieces for the side to move
 var onDragStart = function(source, piece, position, orientation) {
@@ -151,8 +148,6 @@ var updateStatus = function() {
   statusEl.html(status);
   fenEl.html(game.fen());
   pgnEl.html(game.pgn());
-
-  $slider.attr('max', depth(fenTree));
 };
 
 var cfg = {
@@ -169,6 +164,13 @@ var updateDisplay = function(i) {
   }
   $('#depth').html(depth(fenTree));
   render(getRootNode(), true);
+
+  setSliderMax(depth(fenTree)-1);
+};
+
+var setSliderMax = function(max) {
+  console.log('set max to ', depth(fenTree));
+  $slider.attr('max', max);
 };
 
 
@@ -211,6 +213,7 @@ $('#record').on('change', function() {
     game = new Chess();
     board.position(fenTree.pos);
     currentNode = fenTree;
+    setSliderMax(depth(fenTree)-1);
     updateDisplay();
   }
   nextNodeId = 1;
@@ -225,13 +228,14 @@ $slider.on("input", function(){
   board.position(currentNode.pos);
 });
 
-board = new ChessBoard('board', cfg);
-updateStatus();
-updateDisplay();
-
-
-
 function click(d) {
   $('#slider').val(d.id);
   board.position(d.pos);
-};
+}
+
+var nextNodeId = depth(fenTree);
+
+
+board = new ChessBoard('board', cfg);
+updateStatus();
+updateDisplay();
