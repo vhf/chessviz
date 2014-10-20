@@ -12,22 +12,24 @@ var currentNode;
 
 
 //returns the maximum depth of the graph
-//FIXME
-var depth = function(tree) {
-  var i = 0;
-  var largest = 0;
-  t.dfs(tree, function(node, par, ctrl) {
-    i++;
-    if(!node.hasOwnProperty('children') || node.children.length === 0) {
-      i = 0;
+var depth = function(node) {
+  if (!node.hasOwnProperty('children') || node.children.length === 0) {
+    return 1;
+  } else {
+    var max = 0;
+    for (var i = 0; i < node.children.length; i += 1) {
+      var depthSubgraph = depth(node.children[i]);
+      if (depthSubgraph > max) {
+        max = depthSubgraph;
+      }
     }
-  });
-  return largest;
+    return max+1;
+  }
 };
 
 var getDeepestNode = function(tree) {
   return t.find(fenTree, function (node) {
-    return node.id === nextNodeId-1;
+    return node.id === depth(tree);
   });
 };
 
@@ -60,7 +62,7 @@ var fenTree = {
 };
 
 var nextNodeId = depth(fenTree);
-$slider.attr('max', nextNodeId);
+$slider.attr('max', depth(fenTree));
 
 // do not pick up pieces if the game is over
 // only pick up pieces for the side to move
@@ -99,7 +101,6 @@ var onDrop = function(source, target) {
       currentNode = newNode;
     } else {
       console.log('continuing a game');
-      nextNodeId = depth(fenTree);
       newNode = {
         id: nextNodeId++,
         pos: game.fen(),
@@ -151,7 +152,7 @@ var updateStatus = function() {
   fenEl.html(game.fen());
   pgnEl.html(game.pgn());
 
-  $slider.attr('max', nextNodeId);
+  $slider.attr('max', depth(fenTree));
 };
 
 var cfg = {
@@ -215,7 +216,7 @@ $('#record').on('change', function() {
   nextNodeId = 1;
 });
 
-$slider.on('input', function(){
+$slider.on("input", function(){
   var self = this;
   currentNode = t.find(fenTree, function (node) {
     return node.id === parseInt(self.value, 10);
@@ -227,7 +228,6 @@ $slider.on('input', function(){
 board = new ChessBoard('board', cfg);
 updateStatus();
 updateDisplay();
-//$slider.prop('disabled', true);
 
 
 
