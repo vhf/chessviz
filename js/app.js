@@ -232,7 +232,6 @@ updateDisplay();
 
 
 function click(d) {
-  console.log('clicked on ', d);
   $('#slider').val(d.id);
   board.position(d.pos);
 };

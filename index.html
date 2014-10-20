@@ -37,7 +37,13 @@
         .on("click", click);
 
     node.append("circle")
-        .attr("r", 4.5);
+        .attr("r", 10);
+    node.append("line")
+        .attr('x1', 0)
+        .attr('y1', -200)
+        .attr('x2', 0)
+        .attr('y2', 200)
+        .style("stroke", "rgb(6,120,155)");
 
     node.append("text")
         .attr("dx", function(d) { return d.children ? -8 : 8; })

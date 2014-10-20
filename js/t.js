@@ -403,13 +403,6 @@ t.find = function( tree ) {
     return found;
 };
 
-t.depth = function(tree) {
-  var i = 0;
-  t.dfs(tree, function(node, par, ctrl) {
-    i++;
-  });
-  return i;
-};
 
 // _dfsPostOrder()
 // -----------------
